@@ -1,4 +1,4 @@
-﻿using CloudFileStorage.Models;
+﻿using CloudFileStorage.Models.DTOs;
 
 namespace CloudFileStorage.Services.Interfaces
 {

@@ -19,7 +19,7 @@ namespace CloudFileStorage.Helpers
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.id),
                     new Claim(JwtRegisteredClaimNames.Name, user.username),
-                    new Claim("role", user.role.ToString()),
+                    new Claim(ClaimTypes.Role, user.role.ToString()),
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("Jwt:ExpirationInMinutes")),
                 SigningCredentials = credentials,

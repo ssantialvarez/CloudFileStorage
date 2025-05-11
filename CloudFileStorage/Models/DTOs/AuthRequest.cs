@@ -1,4 +1,4 @@
-﻿namespace CloudFileStorage.Models
+﻿namespace CloudFileStorage.Models.DTOs
 {
     public class AuthRequest
     {

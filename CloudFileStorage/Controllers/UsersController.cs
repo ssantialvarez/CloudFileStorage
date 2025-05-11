@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CloudFileStorage.Data;
-using CloudFileStorage.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using CloudFileStorage.Services.Interfaces;
+using CloudFileStorage.Models.DTOs;
 
 namespace CloudFileStorage.Controllers
 {
@@ -16,84 +10,56 @@ namespace CloudFileStorage.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly UserContext _context;
+        private readonly IUserService _userService;
 
-        public UsersController(UserContext context)
+        public UsersController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
         // GET: api/Users
+        [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _userService.GetUsersAsync();
+            return Ok(users);
         }
 
         // GET: api/Users/me
         [HttpGet("me")]
-        public async Task<ActionResult<User>> GetUser(string id)
+        public async Task<IActionResult> GetMe()
         {
-            var user = await _context.Users.FindAsync(id);
+            var response = await _userService.GetMeAsync();
+            return Ok(response);
+        }
 
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
+        // GET: api/Users/5
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(string id)
+        {
+            var response = await _userService.GetUserByIdAsync(id);
+            return Ok(response);
         }
 
         // PUT: api/Users/me
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("me")]
-        public async Task<IActionResult> PutUser(string id, User user)
+        public async Task<IActionResult> PutUser([FromBody] UpdateUserRequest req)
         {
-            if (id != user.id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            var response = await _userService.UpdateUserAsync(req);
+            return Ok(response);
         }
-       
+
         // DELETE: api/Users/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            var response = await _userService.DeleteUserAsync(id);
+            return Ok(response);
         }
-
-        private bool UserExists(string id)
-        {
-            return _context.Users.Any(e => e.id == id);
-        }
+        
     }
 }

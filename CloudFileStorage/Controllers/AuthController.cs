@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CloudFileStorage.Models;
 using CloudFileStorage.Services.Interfaces;
+using CloudFileStorage.Models.DTOs;
 
 namespace CloudFileStorage.Controllers
 {
