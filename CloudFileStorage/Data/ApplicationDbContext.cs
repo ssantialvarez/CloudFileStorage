@@ -1,13 +1,15 @@
 ﻿using CloudFileStorage.Models;
 using Microsoft.EntityFrameworkCore;
+using File = CloudFileStorage.Models.File;
 
 namespace CloudFileStorage.Data
 {
-    public class UserContext : DbContext
+    public class ApplicationDbContext : DbContext
     { 
-        public UserContext(DbContextOptions options) :base(options){ }
+        public ApplicationDbContext(DbContextOptions options) :base(options){ }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<File> Files { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +31,21 @@ namespace CloudFileStorage.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.updatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<File>()
+                .Property(f => f.fileName)
+                .IsRequired();
+            modelBuilder.Entity<File>()
+                .Property(f => f.size)
+                .IsRequired();
+            modelBuilder.Entity<File>()
+                .Property(f => f.uploadedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            modelBuilder.Entity<File>()
+                .HasOne(f => f.User)
+                .WithMany(u => u.Files)
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

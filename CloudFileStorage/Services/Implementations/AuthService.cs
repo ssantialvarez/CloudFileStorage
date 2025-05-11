@@ -9,11 +9,11 @@ namespace CloudFileStorage.Services.Implementations
 {
     public class AuthService : IAuthService
     {
-        private readonly UserContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly TokenProvider _tokenProvider;
         private readonly PasswordHasher _passwordHasher;
 
-        public AuthService(UserContext context, TokenProvider tokenProvider, PasswordHasher passwordHasher)
+        public AuthService(ApplicationDbContext context, TokenProvider tokenProvider, PasswordHasher passwordHasher)
         {
             _context = context;
             _tokenProvider = tokenProvider;
@@ -62,7 +62,6 @@ namespace CloudFileStorage.Services.Implementations
             }
             user = new User
             {
-                id = Guid.NewGuid().ToString(),
                 role = UserRole.User,
                 username = req.username,
                 password = _passwordHasher.Hash(req.password)

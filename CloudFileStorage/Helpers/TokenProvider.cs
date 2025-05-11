@@ -17,7 +17,7 @@ namespace CloudFileStorage.Helpers
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.id),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Name, user.username),
                     new Claim(ClaimTypes.Role, user.role.ToString()),
                 }),

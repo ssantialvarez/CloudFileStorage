@@ -10,10 +10,10 @@ namespace CloudFileStorage.Services.Implementations
 {
     public class UserService : IUserService
     {
-        private readonly UserContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public UserService(UserContext context, IHttpContextAccessor contextAccessor)
+        public UserService(ApplicationDbContext context, IHttpContextAccessor contextAccessor)
         {
             _context = context;
             _contextAccessor = contextAccessor;
@@ -21,14 +21,14 @@ namespace CloudFileStorage.Services.Implementations
 
         public async Task<UserResponse> DeleteUserAsync(string id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.id == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == id);
             if (user == null)
                 throw new KeyNotFoundException("User not found in database");
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return new UserResponse
             {
-                id = user.id,
+                id = user.id.ToString(),
                 username = user.username,
                 role = user.role,
                 createdAt = user.createdAt,
@@ -39,14 +39,14 @@ namespace CloudFileStorage.Services.Implementations
         {
             var userId = GetUserIdFromToken();
 
-            var userEntity = await _context.Users.FirstOrDefaultAsync(u => u.id == userId);
+            var userEntity = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == userId);
 
             if (userEntity == null)
                 throw new KeyNotFoundException("User not found in database");
 
             return new UserResponse
             {
-                id = userEntity.id,
+                id = userEntity.id.ToString(),
                 username = userEntity.username,
                 role = userEntity.role,
                 createdAt = userEntity.createdAt,
@@ -55,12 +55,12 @@ namespace CloudFileStorage.Services.Implementations
         }
         public async Task<UserResponse> GetUserByIdAsync(string id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.id == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == id);
             if (user == null)
                 throw new KeyNotFoundException("User not found in database");
             return new UserResponse
             {
-                id = user.id,
+                id = user.id.ToString(),
                 username = user.username,
                 role = user.role,
                 createdAt = user.createdAt,
@@ -72,7 +72,7 @@ namespace CloudFileStorage.Services.Implementations
             var users = await _context.Users.ToListAsync();
             return users.Select(users => new UserResponse
             {
-                id = users.id,
+                id = users.id.ToString(),
                 username = users.username,
                 role = users.role,
                 createdAt = users.createdAt,
@@ -82,7 +82,7 @@ namespace CloudFileStorage.Services.Implementations
         public async Task<UserResponse> UpdateUserAsync(UpdateUserRequest req)
         {
             string userId = GetUserIdFromToken();
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.id == userId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == userId);
             if (user == null)
                 throw new KeyNotFoundException("User not found in database");
             
@@ -96,7 +96,7 @@ namespace CloudFileStorage.Services.Implementations
             await _context.SaveChangesAsync();
             return new UserResponse
             {
-                id = user.id,
+                id = user.id.ToString(),
                 username = user.username,
                 role = user.role,
                 createdAt = user.createdAt,
