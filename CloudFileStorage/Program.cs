@@ -8,13 +8,17 @@ using CloudFileStorage.Helpers;
 using CloudFileStorage.Services.Implementations;
 using CloudFileStorage.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 var builder = WebApplication.CreateBuilder(args);
+
+DotNetEnv.Env.Load("../.env");
+builder.Configuration
+    .AddEnvironmentVariables(); 
 
 // Add services to the container.
 
@@ -24,7 +28,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithAuth();
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions("AWS"));
 builder.Services.AddAWSService<IAmazonS3>();
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Environment.GetEnvironmentVariable("CONNECTION_STRING")));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -32,16 +36,19 @@ builder.Services.AddScoped<IFileService, FileService>();
 
 builder.Services.AddSingleton(x =>
 {
-    var connectionString = builder.Configuration["Azure:BlobStorageConnectionString"];
+    var connectionString = builder.Configuration["AZURE:BLOB_STORAGE_CONNECTION_STRING"];
     return new BlobServiceClient(connectionString);
 });
 builder.Services.AddSingleton<TokenProvider>();
 builder.Services.AddSingleton<PasswordHasher>();
 
 builder.Services.AddAuthorization();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var jwtSecret = builder.Configuration["JWT:SECRET"];
+        Console.WriteLine(jwtSecret);
         options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -51,10 +58,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:secretKey"])),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ClockSkew = TimeSpan.Zero // Remove delay of token when expire 
         };
     });
+
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

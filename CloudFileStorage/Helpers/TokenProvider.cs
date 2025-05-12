@@ -10,7 +10,7 @@ namespace CloudFileStorage.Helpers
     { 
         public string Create(User user)
         {
-            string secretKey = configuration["Jwt:secretKey"];
+            string secretKey = configuration["JWT:SECRET"];
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new SecurityTokenDescriptor

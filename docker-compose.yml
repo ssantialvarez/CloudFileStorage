@@ -1,17 +1,22 @@
 services:
   cloudfilestorage:
     build:
-     context: ./CloudFileStorage
-     dockerfile: Dockerfile
+      context: ./CloudFileStorage
+      dockerfile: Dockerfile
     ports:
-     - "8080:8080"
-     - "8081:8081"
+      - "8080:8080"
     depends_on:
-     - sqlserver
+      - sqlserver
     environment:
-     - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - CONNECTION_STRING=${CONNECTION_STRING}
+      - JWT__SECRET=${JWT__SECRET}
+      - AWS_ACCESS_KEY_ID=${AWS__ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS__SECRET_KEY}
+      - AZURE__CONTAINER_NAME=${AZURE__CONTAINER_NAME}
+      - AZURE__BLOB_STORAGE_CONNECTION_STRING=${AZURE__BLOB_STORAGE_CONNECTION_STRING}
     networks:
-     - cloudfilestoragenetwork
+      - cloudfilestoragenetwork
     restart: on-failure
 
   sqlserver:
@@ -20,15 +25,14 @@ services:
       SA_PASSWORD: "Password12345!"
       ACCEPT_EULA: "Y"
     ports:
-     - "1433:1433"
+      - "1433:1433"
     volumes:
-     - sqlvolume:/var/opt/mssql
+      - sqlvolume:/var/opt/mssql
     networks:
-     - cloudfilestoragenetwork
-
-networks:
-  cloudfilestoragenetwork:
+      - cloudfilestoragenetwork
 
 volumes:
   sqlvolume:
-  
+
+networks:
+  cloudfilestoragenetwork:
