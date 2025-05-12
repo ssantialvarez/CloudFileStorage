@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Amazon.S3;
+using Azure.Storage.Blobs;
 using CloudFileStorage.Data;
 using CloudFileStorage.Extensions;
 using CloudFileStorage.Helpers;
@@ -29,6 +30,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
+builder.Services.AddSingleton(x =>
+{
+    var connectionString = builder.Configuration["Azure:BlobStorageConnectionString"];
+    return new BlobServiceClient(connectionString);
+});
 builder.Services.AddSingleton<TokenProvider>();
 builder.Services.AddSingleton<PasswordHasher>();
 

@@ -25,7 +25,17 @@ namespace CloudFileStorage.Controllers
             _fileService = fileService;
         }
 
+        // GET: api/Files
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> GetFiles()
+        {
+            var response = await _fileService.GetAllFilesAsync();
+            return Ok(response);
+        }
+
         // GET: api/Files/5
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFile(Guid id)
         {
@@ -34,6 +44,7 @@ namespace CloudFileStorage.Controllers
         }
 
         // GET: api/Files/by_user/5
+        [Authorize(Roles = "Admin")]
         [HttpGet("by_user/{userId}")]
         public async Task<IActionResult> GetFilesByUserId(string userId)
         {

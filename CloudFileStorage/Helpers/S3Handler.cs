@@ -7,7 +7,7 @@ namespace CloudFileStorage.Helpers
     public class S3Handler
     {
         // Function to upload a file to an S3 bucket.
-        public static async Task<PutObjectResponse> UploadFile(IFormFile file, string bucketName, string? prefix, IAmazonS3 client)
+        public static async Task<PutObjectResponse> UploadFileAsync(IFormFile file, string bucketName, string? prefix, IAmazonS3 client)
         {
             // Create a PutObjectRequest.
             var request = new PutObjectRequest
@@ -20,12 +20,12 @@ namespace CloudFileStorage.Helpers
             // Upload the file.
             return await client.PutObjectAsync(request);
         }
-        public static async Task<FileStreamResult> DownloadFileAsync(string bucketName, string objectKey, IAmazonS3 client)
+        public static async Task<FileStreamResult> DownloadFileAsync(string bucketName, string fileName, string? prefix, IAmazonS3 client)
         {
             var request = new GetObjectRequest
             {
                 BucketName = bucketName,
-                Key = objectKey
+                Key = $"{prefix}/{fileName}"
             };
 
             var s3Object = await client.GetObjectAsync(request);
@@ -33,7 +33,7 @@ namespace CloudFileStorage.Helpers
             // Devuelve el archivo como FileStreamResult
             return new FileStreamResult(s3Object.ResponseStream, s3Object.Headers.ContentType)
             {
-                FileDownloadName = objectKey
+                FileDownloadName = fileName
             };
         }
 
