@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using CloudFileStorage.Data;
+using CloudFileStorage.Helpers;
 using CloudFileStorage.Models;
 using CloudFileStorage.Models.DTOs;
 using CloudFileStorage.Services.Interfaces;
@@ -12,11 +13,13 @@ namespace CloudFileStorage.Services.Implementations
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly TokenProvider _tokenProvider;
 
-        public UserService(ApplicationDbContext context, IHttpContextAccessor contextAccessor)
+        public UserService(ApplicationDbContext context, IHttpContextAccessor contextAccessor, TokenProvider tokenProvider)
         {
             _context = context;
             _contextAccessor = contextAccessor;
+            _tokenProvider = tokenProvider;
         }
 
         public async Task<UserResponse> DeleteUserAsync(string id)
@@ -37,7 +40,7 @@ namespace CloudFileStorage.Services.Implementations
         }
         public async Task<UserResponse> GetMeAsync()
         {
-            var userId = GetUserIdFromToken();
+            var userId = _tokenProvider.GetUserIdFromToken();
 
             var userEntity = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == userId);
 
@@ -81,7 +84,7 @@ namespace CloudFileStorage.Services.Implementations
         }
         public async Task<UserResponse> UpdateUserAsync(UpdateUserRequest req)
         {
-            string userId = GetUserIdFromToken();
+            string userId = _tokenProvider.GetUserIdFromToken();
             var user = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == userId);
             if (user == null)
                 throw new KeyNotFoundException("User not found in database");
@@ -103,17 +106,6 @@ namespace CloudFileStorage.Services.Implementations
                 updatedAt = user.updatedAt
             };
 
-        }
-
-        private string GetUserIdFromToken()
-        {
-            var user = _contextAccessor.HttpContext?.User;
-            if (user == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("User not authenticated");
-            var userId = user.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new UnauthorizedAccessException("User ID not found in token");
-            return userId;
         }
     }
 }

@@ -1,13 +1,15 @@
-﻿using File = CloudFileStorage.Models.File;
+﻿using CloudFileStorage.Models.DTOs;
+using Microsoft.AspNetCore.Mvc;
+using File = CloudFileStorage.Models.File;
 
 namespace CloudFileStorage.Services.Interfaces
-
-
 {
     public interface IFileService
     {
-        Task<File> UploadFileAsync(IFormFile file);
-        Task<File> GetFileByIdAsync(Guid id);
+        Task<FileResponse> UploadFileAsync(IFormFile file);
+        Task<IActionResult> DownloadFileAsync(Guid id);
+        Task<FileResponse> GetFileByIdAsync(Guid id);
+        Task<List<FileResponse>> GetFilesByUserIdAsync(string userId);
         Task<bool> DeleteFileAsync(Guid id);
     }
 }

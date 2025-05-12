@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CloudFileStorage.Helpers
 {
-    public class TokenProvider(IConfiguration configuration)
+    public class TokenProvider(IConfiguration configuration, IHttpContextAccessor _contextAccessor)
     { 
         public string Create(User user)
         {
@@ -29,6 +29,16 @@ namespace CloudFileStorage.Helpers
             var tokenHandler = new JsonWebTokenHandler();
             string token = tokenHandler.CreateToken(tokenDescriptor);
             return token;
+        }
+        public string GetUserIdFromToken()
+        {
+            var user = _contextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity.IsAuthenticated)
+                throw new UnauthorizedAccessException("User not authenticated");
+            var userId = user.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("User ID not found in token");
+            return userId;
         }
     }
 }
