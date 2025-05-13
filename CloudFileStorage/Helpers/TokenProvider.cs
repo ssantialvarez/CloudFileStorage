@@ -40,5 +40,17 @@ namespace CloudFileStorage.Helpers
                 throw new UnauthorizedAccessException("User ID not found in token");
             return userId;
         }
+        
+        public string GetRoleFromToken()
+        {
+            var user = _contextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity.IsAuthenticated)
+                throw new UnauthorizedAccessException("User not authenticated");
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            if (string.IsNullOrEmpty(role))
+                throw new UnauthorizedAccessException("Role not found in token");
+            return role;
+        }
+        
     }
 }

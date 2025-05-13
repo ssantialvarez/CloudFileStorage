@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using CloudFileStorage.Data;
 using CloudFileStorage.Helpers;
+using CloudFileStorage.Models;
 using CloudFileStorage.Models.DTOs;
 using CloudFileStorage.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -31,13 +32,30 @@ namespace CloudFileStorage.Services.Implementations
             _s3Client = s3Client;
             _blobServiceClient = blobServiceClient;
         }
+
+        public Task<IQueryable> GetStatsAsync()
+        {
+            // Implementation for retrieving statistics
+            // It will return a list of all the users and the amount of storage they have used during that day.
+            var today = DateTime.UtcNow.Date;
+            var query = from file in _dbContext.Files
+                                           where file.uploadedOn.Date == today
+                                          join user in _dbContext.Users 
+                                              on file.UserId equals user.id
+                                          group file by user into g
+                                              select new { User = g.Key, Size = g.Sum(f => f.size) };
+                    
+            return Task.FromResult<IQueryable>(query);
+        }
+        
         public Task<bool> DeleteFileAsync(Guid id)
         {
             var userId = _tokenProvider.GetUserIdFromToken();
+            var role = _tokenProvider.GetRoleFromToken();
             try
             {
                 var file = _dbContext.Files.FirstOrDefault(f => f.id == id && f.UserId.ToString() == userId);
-                if (file == null)
+                if (file == null && role != "Admin")
                 {
                     throw new KeyNotFoundException("File not found in database or owners incorrect credentials");
                 }
@@ -96,13 +114,27 @@ namespace CloudFileStorage.Services.Implementations
             return files;
         }
 
-        public async Task<FileResponse> UploadFileAsync(IFormFile file)
+        public async Task<List<FileResponse>> GetOwnFilesAsync()
         {
             string userId = _tokenProvider.GetUserIdFromToken();
-            string bucketName = _configuration["AWS:bucketName"];
-         
-            File? newFile = null;
+            return await GetFilesByUserIdAsync(userId);
+        }
 
+        public async Task<FileResponse> UploadFileAsync(IFormFile file)
+        {
+            File? newFile = null;
+            string userId = _tokenProvider.GetUserIdFromToken();
+            string bucketName = _configuration["AWS:bucketName"];
+            
+            // I want to check that the user did not upload more than 5GB THIS month
+            // So the idea is to look for all the files he uploaded in the ongoing month
+            // SUM the size of all those files and check that he didnt upload more than 5GB
+            // If he didnt, then we can upload the file
+            var size = _dbContext.Files.Where(f => f.UserId.ToString() == userId && f.uploadedOn.Month == DateTime.UtcNow.Month && f.uploadedOn.Year == DateTime.UtcNow.Year).Sum(f => f.size);;
+            
+            if(size + file.Length > 5000000000)
+                throw new Exception("You have reached your monthly limit of 5GB");
+            
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File cannot be null or empty.");
             

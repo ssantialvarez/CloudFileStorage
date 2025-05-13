@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CloudFileStorage.Data;
+using CloudFileStorage.Helpers;
 using CloudFileStorage.Models;
 using File = CloudFileStorage.Models.File;
 using Microsoft.AspNetCore.Authorization;
@@ -49,6 +50,24 @@ namespace CloudFileStorage.Controllers
         public async Task<IActionResult> GetFilesByUserId(string userId)
         {
             var response = await _fileService.GetFilesByUserIdAsync(userId);
+            return Ok(response);
+        }
+        
+        // GET: api/Files/stats
+        [Authorize(Roles = "Admin")]
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var response = await _fileService.GetStatsAsync();
+            return Ok(response);       
+        }
+        
+        // GET: api/Files/me
+        [HttpGet("me")]
+        public async Task<IActionResult> GetFilesByUserId()
+        {
+            
+            var response = await _fileService.GetOwnFilesAsync();
             return Ok(response);
         }
 

@@ -15,9 +15,12 @@ services:
       - AWS_SECRET_KEY=${AWS__SECRET_KEY}
       - AZURE__CONTAINER_NAME=${AZURE__CONTAINER_NAME}
       - AZURE__BLOB_STORAGE_CONNECTION_STRING=${AZURE__BLOB_STORAGE_CONNECTION_STRING}
+    volumes:
+      - ./CloudFileStorage:/app   
     networks:
       - cloudfilestoragenetwork
     restart: on-failure
+    command: [ "dotnet", "watch", "run", "--urls=http://0.0.0.0:8080" ]
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest

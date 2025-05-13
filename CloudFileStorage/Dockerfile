@@ -28,3 +28,13 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "CloudFileStorage.dll"]
+
+
+# Esta fase se usa en desarrollo.
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dev
+WORKDIR /app
+EXPOSE 8080
+
+COPY . .  
+
+CMD ["dotnet", "watch", "run", "--urls=http://0.0.0.0:8080"]

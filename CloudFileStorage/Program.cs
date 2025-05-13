@@ -8,7 +8,6 @@ using CloudFileStorage.Helpers;
 using CloudFileStorage.Services.Implementations;
 using CloudFileStorage.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,7 +15,7 @@ JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 var builder = WebApplication.CreateBuilder(args);
 
-DotNetEnv.Env.Load("../.env");
+
 builder.Configuration
     .AddEnvironmentVariables(); 
 
@@ -48,7 +47,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         var jwtSecret = builder.Configuration["JWT:SECRET"];
-        Console.WriteLine(jwtSecret);
         options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {

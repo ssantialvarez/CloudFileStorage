@@ -10,8 +10,9 @@ namespace CloudFileStorage.Services.Interfaces
         Task<IActionResult> DownloadFileAsync(Guid id);
         Task<FileResponse> GetFileByIdAsync(Guid id);
         Task<List<FileResponse>> GetFilesByUserIdAsync(string userId);
-
+        Task<List<FileResponse>> GetOwnFilesAsync();
         Task<List<FileResponse>> GetAllFilesAsync();
         Task<bool> DeleteFileAsync(Guid id);
+        Task<IQueryable> GetStatsAsync();
     }
 }

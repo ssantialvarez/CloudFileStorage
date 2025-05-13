@@ -60,6 +60,13 @@ namespace CloudFileStorage.Controllers
             var response = await _userService.DeleteUserAsync(id);
             return Ok(response);
         }
+        // DELETE: api/Users/me
+        [HttpDelete("me")]
+        public async Task<IActionResult> DeleteUser()
+        {
+            var response = await _userService.DeleteOwnUserAsync();
+            return Ok(response);
+        }
         
     }
 }

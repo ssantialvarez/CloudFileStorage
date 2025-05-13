@@ -1,5 +1,4 @@
-﻿using CloudFileStorage.Models;
-using CloudFileStorage.Models.DTOs;
+﻿using CloudFileStorage.Models.DTOs;
 
 namespace CloudFileStorage.Services.Interfaces
 {
@@ -10,5 +9,6 @@ namespace CloudFileStorage.Services.Interfaces
         Task<UserResponse> GetUserByIdAsync(string id);
         Task<UserResponse> UpdateUserAsync(UpdateUserRequest req);
         Task<UserResponse> DeleteUserAsync(string id);
+        Task<UserResponse> DeleteOwnUserAsync();
     }
 }
