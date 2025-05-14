@@ -42,10 +42,7 @@ namespace CloudFileStorage.Services.Implementations
 
         public async Task<UserResponse> DeleteUserAsync(string id)
         {
-            var bucketName = _configuration["AWS:BucketName"];
-            var containerName = _configuration["Azure:ContainerName"];
-            if (bucketName == null || containerName == null)
-                throw new Exception("Bucket name or container name not found in configuration");
+            
             var user = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == id);
             if (user == null)
                 throw new KeyNotFoundException("User not found in database");
@@ -55,16 +52,12 @@ namespace CloudFileStorage.Services.Implementations
 
             try
             {
-                foreach (File fileToDelete in files)
+                FileService fileService = new FileService(_configuration, _context, _tokenProvider ,_s3Client, _blobServiceClient);
+                foreach (var file in files)
                 {
-                    var objectKey = $"{fileToDelete.UserId}/{fileToDelete.fileName}";
-                    // Delete the file from S3
-                    var res = await S3Handler.DeleteFileAsync(bucketName, objectKey, _s3Client);
-                    // Delete the file from Azure Blob Storage
-                    await AzureHandler.DeleteFileAsync(objectKey, containerName, _blobServiceClient);    
+                    // Delete each file
+                    await fileService.DeleteFileAsync(file.id);
                 }
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -154,3 +147,7 @@ namespace CloudFileStorage.Services.Implementations
         }
     }
 }
+
+
+
+

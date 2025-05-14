@@ -12,8 +12,14 @@ using File = CloudFileStorage.Models.File;
 
 namespace CloudFileStorage.Services.Implementations
 {
+   
     public class FileService : IFileService
     {
+        // Constants
+        // 5GB = 5000000000 bytes
+        // 5MB = 5000000 bytes
+
+        private readonly double MAX_QUOTA = 5000000000;
         private readonly IConfiguration _configuration;
         private readonly ApplicationDbContext _dbContext;
         private readonly TokenProvider _tokenProvider;
@@ -26,6 +32,7 @@ namespace CloudFileStorage.Services.Implementations
             TokenProvider tokenProvider,
             IAmazonS3 s3Client,
             BlobServiceClient blobServiceClient)
+        
         {
             _dbContext = dbContext;
             _tokenProvider = tokenProvider;
@@ -61,6 +68,11 @@ namespace CloudFileStorage.Services.Implementations
         
         public Task<bool> DeleteFileAsync(Guid id)
         {
+            var providers = new List<IProviderHandler>
+            {
+                new AzureHandler(_blobServiceClient, _configuration),
+                new S3Handler(_s3Client,_configuration)
+            };
             var userId = _tokenProvider.GetUserIdFromToken();
             var role = _tokenProvider.GetRoleFromToken();
             try
@@ -72,17 +84,12 @@ namespace CloudFileStorage.Services.Implementations
                 }
                 _dbContext.Files.Remove(file);
                 _dbContext.SaveChanges();
-                var bucketName = _configuration["AWS:BucketName"];
-                var containerName = _configuration["Azure:ContainerName"];
-                var objectKey = $"{file.UserId}/{file.fileName}";
+             
 
-                if(bucketName == null || containerName == null)
-                    throw new Exception("Bucket name or container name not found in configuration");
-
-                // Delete the file from S3
-                var res = S3Handler.DeleteFileAsync(bucketName, objectKey, _s3Client);
-                // Delete the file from Azure Blob Storage
-                _ = AzureHandler.DeleteFileAsync(objectKey, containerName, _blobServiceClient);
+                foreach (var provider in providers)
+                {
+                    provider.DeleteFileAsync(file.fileName, file.UserId.ToString()).Wait();
+                }
 
                 return Task.FromResult(true);
             }
@@ -138,11 +145,14 @@ namespace CloudFileStorage.Services.Implementations
 
         public async Task<FileResponse> UploadFileAsync(IFormFile file)
         {
+            var providers = new List<IProviderHandler>
+            {
+                new S3Handler(_s3Client, _configuration),
+                new AzureHandler(_blobServiceClient, _configuration)
+            };
             File? newFile = null;
             double totalSize = 0;
             string userId = _tokenProvider.GetUserIdFromToken();
-            var bucketName = _configuration["AWS:bucketName"];
-            var containerName = _configuration["Azure:ContainerName"];
 
             // I want to check that the user did not upload more than 5GB THIS month
             // So the idea is to look for all the files he uploaded in the ongoing month
@@ -161,19 +171,23 @@ namespace CloudFileStorage.Services.Implementations
             
             // var totalSize = _dbContext.Files.Where(f => f.UserId.ToString() == userId && f.uploadedOn.Month == DateTime.UtcNow.Month && f.uploadedOn.Year == DateTime.UtcNow.Year).Sum(f => f.size);;
             
-            if(totalSize + file.Length > 5000000000)
-                throw new Exception("You have reached your monthly limit of 5GB");
+            if(totalSize + file.Length > MAX_QUOTA)
+                throw new Exception("You have reached your monthly limit.");
             
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File cannot be null or empty.");
-            if(bucketName == null || containerName == null)
-                throw new Exception("Bucket name or container name not found in configuration");
+
             try
             {
-                // Upload the file to S3
-                object s3UploadResponse = await S3Handler.UploadFileAsync(file, bucketName, userId, _s3Client);
-                // Upload the file to Azure Blob Storage
-                string azureUploadResponse = await AzureHandler.UploadFileAsync(file, userId, containerName, _blobServiceClient);
+                foreach (var provider in providers)
+                {
+                    // Upload the file to the provider
+                    var uploadResponse = await provider.UploadFileAsync(file, userId);
+                    if (!uploadResponse)
+                    {
+                        throw new Exception("Error uploading file to provider");
+                    }
+                }
 
                 // Create a new File object
                 newFile = new File
@@ -204,8 +218,13 @@ namespace CloudFileStorage.Services.Implementations
             };
         }
 
-        public async Task<IActionResult> DownloadFileAsync(Guid id)
+        public async Task<string?> DownloadFileAsync(Guid id)
         {
+            var providers = new List<IProviderHandler>
+            {
+                new S3Handler(_s3Client, _configuration),
+                new AzureHandler(_blobServiceClient, _configuration)
+            };
             var file = await _dbContext.Files
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.id == id);
@@ -215,32 +234,20 @@ namespace CloudFileStorage.Services.Implementations
             }
             try
             {
-                var bucketName = _configuration["AWS:BucketName"];
-                var containerName = _configuration["Azure:ContainerName"];
-                if(bucketName == null || containerName == null)
-                    throw new Exception("Bucket name or container name not found in configuration");
-
-                var result = await S3Handler.DownloadFileAsync(bucketName, file.fileName, file.UserId.ToString(), _s3Client);
-                // If the file is not found in S3, check Azure Blob Storage
-                
-                if (result == null)
+                foreach (var provider in providers)
                 {
-                    var downloadResponse = await AzureHandler.DownloadFileAsync(file.fileName, file.UserId.ToString(), _configuration["Azure:ContainerName"], _blobServiceClient);
-                    if (downloadResponse != null)
+                    var result = await provider.DownloadFileAsync(file.fileName, file.UserId.ToString());
+                    if (result != null)
                     {
-                        return new FileStreamResult(downloadResponse.Content, file.contentType)
-                        {
-                            FileDownloadName = file.fileName
-                        };
+                        return result;
                     }
-                    throw new KeyNotFoundException("File not found in both S3 and Azure Blob Storage");
                 }
-                return result;
             }
             catch (Exception ex)
             {
                 throw new Exception("Error downloading file", ex);
             }
+            return null;
         }
 
         public async Task<List<FileResponse>> GetAllFilesAsync()
@@ -261,3 +268,6 @@ namespace CloudFileStorage.Services.Implementations
 
     }
 }
+
+
+

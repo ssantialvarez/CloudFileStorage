@@ -4,11 +4,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CloudFileStorage.Helpers
 {
-    public class S3Handler
+    public class S3Handler : IProviderHandler
     {
-        // Function to upload a file to an S3 bucket.
-        public static async Task<PutObjectResponse> UploadFileAsync(IFormFile file, string bucketName, string? prefix, IAmazonS3 client)
+        private readonly IConfiguration _configuration;
+        private readonly IAmazonS3 client;
+        public S3Handler(IAmazonS3 s3Client, IConfiguration configuration)
         {
+            client = s3Client;
+            _configuration = configuration;
+        }
+        // Function to upload a file to an S3 bucket.
+        public async Task<bool> UploadFileAsync(IFormFile file, string? prefix)
+        {
+            var bucketName = _configuration["AWS:BucketName"];
+
             // Create a PutObjectRequest.
             var request = new PutObjectRequest
             {
@@ -18,34 +27,34 @@ namespace CloudFileStorage.Helpers
             };
             request.Metadata.Add("Content-Type", file.ContentType);
             // Upload the file.
-            return await client.PutObjectAsync(request);
+            var res = await client.PutObjectAsync(request);
+            return res != null;
         }
-        public static async Task<FileStreamResult> DownloadFileAsync(string bucketName, string fileName, string? prefix, IAmazonS3 client)
+        public async Task<string> DownloadFileAsync(string fileName, string? prefix)
         {
-            var request = new GetObjectRequest
+            var bucketName = _configuration["AWS:BucketName"];
+            // returns presigned URL
+            var response = await client.GetPreSignedURLAsync(new GetPreSignedUrlRequest
+            {
+                BucketName = bucketName,
+                Key = $"{prefix}/{fileName}",
+                Expires = DateTime.UtcNow.AddMinutes(5)
+            });
+
+            return response;
+        }
+
+        public async Task DeleteFileAsync(string fileName, string? prefix)
+        {
+            var bucketName = _configuration["AWS:BucketName"];
+            var request = new DeleteObjectRequest
             {
                 BucketName = bucketName,
                 Key = $"{prefix}/{fileName}"
             };
 
-            var s3Object = await client.GetObjectAsync(request);
-
-            // Devuelve el archivo como FileStreamResult
-            return new FileStreamResult(s3Object.ResponseStream, s3Object.Headers.ContentType)
-            {
-                FileDownloadName = fileName
-            };
-        }
-
-        public static async Task<DeleteObjectResponse> DeleteFileAsync(string bucketName, string objectKey, IAmazonS3 client)
-        {
-            var request = new DeleteObjectRequest
-            {
-                BucketName = bucketName,
-                Key = objectKey
-            };
-
-            return await client.DeleteObjectAsync(request);
+            await client.DeleteObjectAsync(request);
         }
     }
 }
+

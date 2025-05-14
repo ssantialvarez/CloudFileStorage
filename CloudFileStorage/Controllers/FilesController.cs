@@ -141,16 +141,18 @@ namespace CloudFileStorage.Controllers
         /// <response code="200">Return stats.</response>
         /// <response code="400">Bad request. Invalid id.</response>      
         /// <response code="401">Unauthorized. Login or register.</response>
+        /// <response code="404">Not Found.</response>
         [HttpGet("download/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]     
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DownloadFile(Guid id)
         {
             try
             {
                 var response = await _fileService.DownloadFileAsync(id);
-                return response;
+                return response != null ? Ok(response) : NotFound();
             }
             catch (Exception e)
             {

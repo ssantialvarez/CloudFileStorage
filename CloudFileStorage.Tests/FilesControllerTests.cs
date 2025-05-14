@@ -37,23 +37,30 @@ namespace CloudFileStorage.Tests
             var responseValue = result.Value as List<FileResponse>;
             Assert.Equal(fakeFiles, responseValue);
         }
-
         [Fact]
         public void GetFile_Returns_File()
         {
             // Arrange
-            var fakeFile = A.Dummy<FileResponse>();
+            var fakeFile = A.CollectionOfDummy<FileResponse>(1).First();
             Guid fileId = Guid.NewGuid();
+            fakeFile.id = fileId; 
+            fakeFile.fileName = "TestFile";
+    
             A.CallTo(() => _fileServiceMock.GetFileByIdAsync(fileId)).Returns(fakeFile);
 
             // Act
-            var actionResult = _controller.GetFile(Guid.NewGuid());
+            var actionResult = _controller.GetFile(fileId);
 
             // Assert
             var result = actionResult.Result as OkObjectResult;
             var responseValue = result.Value as FileResponse;
-            Assert.Equal(fakeFile, responseValue);
+            Assert.Equal(fakeFile.id, responseValue.id);
+            Assert.Equal(fakeFile.fileName, responseValue.fileName);
         }
+
+
+
+
 
         [Fact]
         public void GetFilesByUserId_Returns_Files()
