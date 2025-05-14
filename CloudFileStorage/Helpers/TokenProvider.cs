@@ -10,7 +10,9 @@ namespace CloudFileStorage.Helpers
     { 
         public string Create(User user)
         {
-            string secretKey = configuration["JWT:SECRET"];
+            var secretKey = configuration["JWT:SECRET"];
+            if (string.IsNullOrEmpty(secretKey))
+                throw new Exception("JWT secret not found in configuration");
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -33,8 +35,10 @@ namespace CloudFileStorage.Helpers
         public string GetUserIdFromToken()
         {
             var user = _contextAccessor.HttpContext?.User;
+#pragma warning disable CS8602 // Desreferencia de una referencia posiblemente NULL.
             if (user == null || !user.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("User not authenticated");
+#pragma warning restore CS8602 // Desreferencia de una referencia posiblemente NULL.
             var userId = user.FindFirst("sub")?.Value;
             if (string.IsNullOrEmpty(userId))
                 throw new UnauthorizedAccessException("User ID not found in token");
@@ -44,8 +48,10 @@ namespace CloudFileStorage.Helpers
         public string GetRoleFromToken()
         {
             var user = _contextAccessor.HttpContext?.User;
+#pragma warning disable CS8602 // Desreferencia de una referencia posiblemente NULL.
             if (user == null || !user.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("User not authenticated");
+#pragma warning restore CS8602 // Desreferencia de una referencia posiblemente NULL.
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             if (string.IsNullOrEmpty(role))
                 throw new UnauthorizedAccessException("Role not found in token");

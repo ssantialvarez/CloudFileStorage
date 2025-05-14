@@ -5,7 +5,7 @@ using CloudFileStorage.Models.DTOs;
 
 namespace CloudFileStorage.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]

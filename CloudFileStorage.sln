@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudFileStorage", "CloudFi
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudFileStorage.Tests", "..\CloudFileStorage.Tests\CloudFileStorage.Tests.csproj", "{BF8649FA-038E-413B-87FA-850B5F54827C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudFileStorage.Tests", "CloudFileStorage.Tests\CloudFileStorage.Tests.csproj", "{BF8649FA-038E-413B-87FA-850B5F54827C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

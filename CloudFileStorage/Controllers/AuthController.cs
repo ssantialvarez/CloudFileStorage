@@ -8,7 +8,7 @@ using CloudFileStorage.Models.DTOs;
 
 namespace CloudFileStorage.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     [Produces("application/json")]
     public class AuthController : ControllerBase

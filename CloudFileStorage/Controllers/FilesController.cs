@@ -12,9 +12,10 @@ using File = CloudFileStorage.Models.File;
 using Microsoft.AspNetCore.Authorization;
 using CloudFileStorage.Services.Interfaces;
 
+
 namespace CloudFileStorage.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/files")]
     [ApiController]
     [Authorize]
     [Produces("application/json")]
@@ -40,7 +41,7 @@ namespace CloudFileStorage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        //[Produces("application/json")]
+        
         public async Task<IActionResult> GetFiles()
         {
             var response = await _fileService.GetAllFilesAsync();
@@ -62,7 +63,7 @@ namespace CloudFileStorage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        //[Produces("application/json")]
+        
         public async Task<IActionResult> GetFile(Guid id)
         {
             try

@@ -66,18 +66,23 @@ namespace CloudFileStorage.Services.Implementations
             try
             {
                 var file = _dbContext.Files.FirstOrDefault(f => f.id == id && f.UserId.ToString() == userId);
-                if (file == null && role != "Admin")
+                if (file == null || role != "Admin")
                 {
                     throw new KeyNotFoundException("File not found in database or owners incorrect credentials");
                 }
                 _dbContext.Files.Remove(file);
                 _dbContext.SaveChanges();
                 var bucketName = _configuration["AWS:BucketName"];
+                var containerName = _configuration["Azure:ContainerName"];
                 var objectKey = $"{file.UserId}/{file.fileName}";
+
+                if(bucketName == null || containerName == null)
+                    throw new Exception("Bucket name or container name not found in configuration");
+
                 // Delete the file from S3
-                S3Handler.DeleteFileAsync(bucketName, objectKey, _s3Client);
+                var res = S3Handler.DeleteFileAsync(bucketName, objectKey, _s3Client);
                 // Delete the file from Azure Blob Storage
-                AzureHandler.DeleteFileAsync(objectKey, _configuration["Azure:ContainerName"], _blobServiceClient);
+                _ = AzureHandler.DeleteFileAsync(objectKey, containerName, _blobServiceClient);
 
                 return Task.FromResult(true);
             }
@@ -136,8 +141,9 @@ namespace CloudFileStorage.Services.Implementations
             File? newFile = null;
             double totalSize = 0;
             string userId = _tokenProvider.GetUserIdFromToken();
-            string bucketName = _configuration["AWS:bucketName"];
-            
+            var bucketName = _configuration["AWS:bucketName"];
+            var containerName = _configuration["Azure:ContainerName"];
+
             // I want to check that the user did not upload more than 5GB THIS month
             // So the idea is to look for all the files he uploaded in the ongoing month
             // SUM the size of all those files and check that he didnt upload more than 5GB
@@ -160,13 +166,14 @@ namespace CloudFileStorage.Services.Implementations
             
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File cannot be null or empty.");
-            
+            if(bucketName == null || containerName == null)
+                throw new Exception("Bucket name or container name not found in configuration");
             try
             {
                 // Upload the file to S3
                 object s3UploadResponse = await S3Handler.UploadFileAsync(file, bucketName, userId, _s3Client);
                 // Upload the file to Azure Blob Storage
-                string azureUploadResponse = await AzureHandler.UploadFileAsync(file, userId, _configuration["Azure:ContainerName"], _blobServiceClient);
+                string azureUploadResponse = await AzureHandler.UploadFileAsync(file, userId, containerName, _blobServiceClient);
 
                 // Create a new File object
                 newFile = new File
@@ -209,6 +216,10 @@ namespace CloudFileStorage.Services.Implementations
             try
             {
                 var bucketName = _configuration["AWS:BucketName"];
+                var containerName = _configuration["Azure:ContainerName"];
+                if(bucketName == null || containerName == null)
+                    throw new Exception("Bucket name or container name not found in configuration");
+
                 var result = await S3Handler.DownloadFileAsync(bucketName, file.fileName, file.UserId.ToString(), _s3Client);
                 // If the file is not found in S3, check Azure Blob Storage
                 
