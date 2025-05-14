@@ -8,6 +8,7 @@ namespace CloudFileStorage.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [Produces("application/json")]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -17,9 +18,20 @@ namespace CloudFileStorage.Controllers
             _userService = userService;
         }
 
+
         // GET: api/Users
+        /// <summary>
+        /// Gets a list of all users. Admin only.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all users</response>
+        /// <response code="401">Unauthorized. Login or register.</response>
+        /// <response code="403">Forbidden. Admin Only.</response>
         [Authorize(Roles = "Admin")]
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetUsers()
         {
             var users = await _userService.GetUsersAsync();
@@ -27,7 +39,15 @@ namespace CloudFileStorage.Controllers
         }
 
         // GET: api/Users/me
+        /// <summary>
+        /// Gets information of current user.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all users</response>
+        /// <response code="401">Unauthorized. Login or register.</response>
         [HttpGet("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetMe()
         {
             var response = await _userService.GetMeAsync();
@@ -35,8 +55,18 @@ namespace CloudFileStorage.Controllers
         }
 
         // GET: api/Users/5
+        /// <summary>
+        /// Gets information of user by its id. Admin Only.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all users</response>
+        /// <response code="401">Unauthorized. Login or register.</response>
+        /// <response code="403">Forbidden. Admin Only.</response>
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetUserById(string id)
         {
             var response = await _userService.GetUserByIdAsync(id);
@@ -44,8 +74,15 @@ namespace CloudFileStorage.Controllers
         }
 
         // PUT: api/Users/me
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Updates user´s information.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all users</response>
+        /// <response code="401">Unauthorized. Login or register.</response>
         [HttpPut("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> PutUser([FromBody] UpdateUserRequest req)
         {
             var response = await _userService.UpdateUserAsync(req);
@@ -53,15 +90,34 @@ namespace CloudFileStorage.Controllers
         }
 
         // DELETE: api/Users/5
+        /// <summary>
+        /// Deletes user by id. Admin only.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all users</response>
+        /// <response code="401">Unauthorized. Login or register.</response>
+        /// <response code="403">Forbidden. Admin Only.</response>
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var response = await _userService.DeleteUserAsync(id);
             return Ok(response);
         }
+
         // DELETE: api/Users/me
+        /// <summary>
+        /// Deletes current user.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all users</response>
+        /// <response code="401">Unauthorized. Login or register.</response>
         [HttpDelete("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteUser()
         {
             var response = await _userService.DeleteOwnUserAsync();

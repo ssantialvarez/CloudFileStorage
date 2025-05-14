@@ -1,4 +1,5 @@
-﻿using CloudFileStorage.Models.DTOs;
+﻿using System.Collections;
+using CloudFileStorage.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using File = CloudFileStorage.Models.File;
 
@@ -13,6 +14,6 @@ namespace CloudFileStorage.Services.Interfaces
         Task<List<FileResponse>> GetOwnFilesAsync();
         Task<List<FileResponse>> GetAllFilesAsync();
         Task<bool> DeleteFileAsync(Guid id);
-        Task<IQueryable> GetStatsAsync();
+        Task<IEnumerable> GetStatsAsync();
     }
 }

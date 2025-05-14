@@ -70,13 +70,13 @@ namespace CloudFileStorage.Services.Implementations
             
             
             return new UserResponse
-            {
-                id = user.id.ToString(),
-                username = user.username,
-                role = user.role,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt
-            };
+            (
+                user.id.ToString(),
+                user.username,
+                user.role,
+                user.createdAt,
+                user.updatedAt
+            );
         }
         public async Task<UserResponse> GetMeAsync()
         {
@@ -88,13 +88,13 @@ namespace CloudFileStorage.Services.Implementations
                 throw new KeyNotFoundException("User not found in database");
 
             return new UserResponse
-            {
-                id = userEntity.id.ToString(),
-                username = userEntity.username,
-                role = userEntity.role,
-                createdAt = userEntity.createdAt,
-                updatedAt = userEntity.updatedAt
-            };
+            (
+                userEntity.id.ToString(),
+                userEntity.username,
+                userEntity.role,
+                userEntity.createdAt,
+                userEntity.updatedAt
+            );
         }
         public async Task<UserResponse> GetUserByIdAsync(string id)
         {
@@ -102,25 +102,25 @@ namespace CloudFileStorage.Services.Implementations
             if (user == null)
                 throw new KeyNotFoundException("User not found in database");
             return new UserResponse
-            {
-                id = user.id.ToString(),
-                username = user.username,
-                role = user.role,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt
-            };
+            (
+                user.id.ToString(),
+                user.username,
+                user.role,
+                user.createdAt,
+                user.updatedAt
+            );
         }
         public async Task<List<UserResponse>> GetUsersAsync()
         {
             var users = await _context.Users.ToListAsync();
             return users.Select(users => new UserResponse
-            {
-                id = users.id.ToString(),
-                username = users.username,
-                role = users.role,
-                createdAt = users.createdAt,
-                updatedAt = users.updatedAt
-            }).ToList();
+            (
+                users.id.ToString(),
+                users.username,
+                users.role,
+                users.createdAt,
+                users.updatedAt
+            )).ToList();
         }
 
         public Task<UserResponse> DeleteOwnUserAsync()
@@ -154,13 +154,13 @@ namespace CloudFileStorage.Services.Implementations
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return new UserResponse
-            {
-                id = user.id.ToString(),
-                username = user.username,
-                role = user.role,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt
-            };
+            (
+                user.id.ToString(),
+                user.username,
+                user.role,
+                user.createdAt,
+                user.updatedAt
+            );
 
         }
     }

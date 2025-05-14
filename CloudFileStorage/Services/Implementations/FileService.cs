@@ -1,4 +1,5 @@
-﻿using Amazon.S3;
+﻿using System.Collections;
+using Amazon.S3;
 using Azure.Storage.Blobs;
 using CloudFileStorage.Data;
 using CloudFileStorage.Helpers;
@@ -33,7 +34,7 @@ namespace CloudFileStorage.Services.Implementations
             _blobServiceClient = blobServiceClient;
         }
 
-        public Task<IQueryable> GetStatsAsync()
+        public Task<IEnumerable> GetStatsAsync()
         {
             // Implementation for retrieving statistics
             // It will return a list of all the users and the amount of storage they have used during that day.
@@ -44,8 +45,13 @@ namespace CloudFileStorage.Services.Implementations
                                               on file.UserId equals user.id
                                           group file by user into g
                                               select new { User = g.Key, Size = g.Sum(f => f.size) };
+            var result = query.ToList().Select(item => new
+            {
+                user = new UserResponse(item.User.id.ToString(), item.User.username, item.User.role, item.User.createdAt, item.User.updatedAt),
+                size = item.Size
+            });
                     
-            return Task.FromResult<IQueryable>(query);
+            return (Task<IEnumerable>)result;
         }
         
         public Task<bool> DeleteFileAsync(Guid id)

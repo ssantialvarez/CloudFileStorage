@@ -10,6 +10,7 @@ namespace CloudFileStorage.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Produces("application/json")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -21,8 +22,13 @@ namespace CloudFileStorage.Controllers
 
 
         // POST: api/Auth/login
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // <summary> Logins user. </summary>
+        // <returns> Successfully logged in user. </returns>
+        // <response code="200">Returns access token</response>
+        // <response code="400">Bad request. Invalid credentials.</response>
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] AuthRequest req)
         {
             var response = await _authService.LoginAsync(req);
@@ -31,7 +37,13 @@ namespace CloudFileStorage.Controllers
         }
 
         // POST: api/Auth/register
+        // <summary> Registers user. </summary>
+        // <returns> Successfully registered user. </returns>
+        // <response code="200">Returns access token</response>
+        // <response code="400">Bad request. Invalid credentials.</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] AuthRequest req)
         {
             var response = await _authService.RegisterAsync(req);
