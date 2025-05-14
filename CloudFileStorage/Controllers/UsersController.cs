@@ -44,14 +44,24 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Returns all users</response>
+        /// <response code="400">Bad request. Invalid credentials.</response>
         /// <response code="401">Unauthorized. Login or register.</response>
         [HttpGet("me")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetMe()
         {
-            var response = await _userService.GetMeAsync();
-            return Ok(response);
+            try
+            {
+                var response = await _userService.GetMeAsync();
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            
         }
 
         // GET: api/Users/5
@@ -60,17 +70,27 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Returns all users</response>
+        /// <response code="400">Bad request. Invalid credentials.</response>  
         /// <response code="401">Unauthorized. Login or register.</response>
         /// <response code="403">Forbidden. Admin Only.</response>
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetUserById(string id)
         {
-            var response = await _userService.GetUserByIdAsync(id);
-            return Ok(response);
+            try
+            {
+                var response = await _userService.GetUserByIdAsync(id);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            
         }
 
         // PUT: api/Users/me
@@ -79,14 +99,24 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Returns all users</response>
+        /// <response code="400">Bad request. Invalid credentials.</response> 
         /// <response code="401">Unauthorized. Login or register.</response>
         [HttpPut("me")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> PutUser([FromBody] UpdateUserRequest req)
         {
-            var response = await _userService.UpdateUserAsync(req);
-            return Ok(response);
+            try
+            {
+                var response = await _userService.UpdateUserAsync(req);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);           
+            }
+            
         }
 
         // DELETE: api/Users/5
@@ -95,17 +125,26 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Returns all users</response>
+        /// <response code="400">Bad request. Invalid credentials.</response> 
         /// <response code="401">Unauthorized. Login or register.</response>
         /// <response code="403">Forbidden. Admin Only.</response>
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var response = await _userService.DeleteUserAsync(id);
-            return Ok(response);
+            try
+            {
+                var response = await _userService.DeleteUserAsync(id);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);           
+            }
         }
 
         // DELETE: api/Users/me
@@ -114,14 +153,24 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Returns all users</response>
+        /// <response code="400">Bad request. Invalid credentials.</response>       
         /// <response code="401">Unauthorized. Login or register.</response>
         [HttpDelete("me")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]       
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteUser()
         {
-            var response = await _userService.DeleteOwnUserAsync();
-            return Ok(response);
+            try
+            {
+                var response = await _userService.DeleteOwnUserAsync();
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            
         }
         
     }

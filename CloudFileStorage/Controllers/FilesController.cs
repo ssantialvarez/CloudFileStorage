@@ -53,18 +53,28 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns>Successfully retrieved file.</returns>
         /// <response code="200">Returns the file</response>
+        /// <response code="400">Bad request. Invalid id.</response>       
         /// <response code="401">Unauthorized. Login or register.</response>
         /// <response code="403">Forbidden. Admin Only.</response>
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         //[Produces("application/json")]
         public async Task<IActionResult> GetFile(Guid id)
         {
-            var response = await _fileService.GetFileByIdAsync(id);
-            return Ok(response);
+            try
+            {
+                var response = await _fileService.GetFileByIdAsync(id);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);           
+            }
+            
         }
 
         // GET: api/Files/by_user/5
@@ -128,30 +138,50 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Return stats.</response>
+        /// <response code="400">Bad request. Invalid id.</response>      
         /// <response code="401">Unauthorized. Login or register.</response>
         [HttpGet("download/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]     
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DownloadFile(Guid id)
         {
-            var response = await _fileService.DownloadFileAsync(id);
-            return response;
+            try
+            {
+                var response = await _fileService.DownloadFileAsync(id);
+                return response;
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);           
+            }
+            
         }
 
-        // POST: api/Files
+        // POST: api/Files/upload
         /// <summary>
         /// Uploads file. 
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Return stats.</response>
+        /// <response code="400">Bad request.</response>      
         /// <response code="401">Unauthorized. Login or register.</response>
         [HttpPost("upload")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]     
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> PostFile(IFormFile file)
         {
-            var uploadedFile = await _fileService.UploadFileAsync(file);
-            return Ok(uploadedFile);
+            try
+            {
+                var uploadedFile = await _fileService.UploadFileAsync(file);
+                return Ok(uploadedFile);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            ;
         }
 
         // DELETE: api/Files/5
@@ -160,14 +190,21 @@ namespace CloudFileStorage.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Return stats.</response>
+        /// <response code="400">Bad request. Invalid id.</response>
         /// <response code="401">Unauthorized. Login or register.</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]      
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteFile(Guid id)
         {
-            var response = await _fileService.DeleteFileAsync(id);
-            return Ok(new { success = response });
+            try {
+                var response = await _fileService.DeleteFileAsync(id);
+                return Ok(new { success = response });
+            } catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

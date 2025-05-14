@@ -34,7 +34,7 @@ namespace CloudFileStorage.Services.Implementations
             _blobServiceClient = blobServiceClient;
         }
 
-        public Task<IEnumerable> GetStatsAsync()
+        public async Task<IEnumerable<StatsResponse>> GetStatsAsync()
         {
             // Implementation for retrieving statistics
             // It will return a list of all the users and the amount of storage they have used during that day.
@@ -45,13 +45,18 @@ namespace CloudFileStorage.Services.Implementations
                                               on file.UserId equals user.id
                                           group file by user into g
                                               select new { User = g.Key, Size = g.Sum(f => f.size) };
-            var result = query.ToList().Select(item => new
-            {
-                user = new UserResponse(item.User.id.ToString(), item.User.username, item.User.role, item.User.createdAt, item.User.updatedAt),
-                size = item.Size
-            });
+            var result = await query.Select(item => new StatsResponse(
+                item.Size,
+                new UserResponse(
+                    item.User.id.ToString(),
+                    item.User.username,
+                    item.User.role,
+                    item.User.createdAt,
+                    item.User.updatedAt
+                )
+            )).ToListAsync();
                     
-            return (Task<IEnumerable>)result;
+            return result;
         }
         
         public Task<bool> DeleteFileAsync(Guid id)
@@ -129,6 +134,7 @@ namespace CloudFileStorage.Services.Implementations
         public async Task<FileResponse> UploadFileAsync(IFormFile file)
         {
             File? newFile = null;
+            double totalSize = 0;
             string userId = _tokenProvider.GetUserIdFromToken();
             string bucketName = _configuration["AWS:bucketName"];
             
@@ -136,9 +142,20 @@ namespace CloudFileStorage.Services.Implementations
             // So the idea is to look for all the files he uploaded in the ongoing month
             // SUM the size of all those files and check that he didnt upload more than 5GB
             // If he didnt, then we can upload the file
-            var size = _dbContext.Files.Where(f => f.UserId.ToString() == userId && f.uploadedOn.Month == DateTime.UtcNow.Month && f.uploadedOn.Year == DateTime.UtcNow.Year).Sum(f => f.size);;
+            List<File> files = await _dbContext.Files.Where(f => f.UserId.ToString() == userId).ToListAsync();
+
+            foreach (File f in files)
+            {
+                if(f.fileName == file.FileName)
+                    throw new Exception("File with the same name already exists");
+                
+                if(f.uploadedOn.Month == DateTime.UtcNow.Month && f.uploadedOn.Year == DateTime.UtcNow.Year)
+                    totalSize += f.size;
+            }
             
-            if(size + file.Length > 5000000000)
+            // var totalSize = _dbContext.Files.Where(f => f.UserId.ToString() == userId && f.uploadedOn.Month == DateTime.UtcNow.Month && f.uploadedOn.Year == DateTime.UtcNow.Year).Sum(f => f.size);;
+            
+            if(totalSize + file.Length > 5000000000)
                 throw new Exception("You have reached your monthly limit of 5GB");
             
             if (file == null || file.Length == 0)

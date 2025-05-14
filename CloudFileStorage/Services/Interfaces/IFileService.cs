@@ -14,6 +14,6 @@ namespace CloudFileStorage.Services.Interfaces
         Task<List<FileResponse>> GetOwnFilesAsync();
         Task<List<FileResponse>> GetAllFilesAsync();
         Task<bool> DeleteFileAsync(Guid id);
-        Task<IEnumerable> GetStatsAsync();
+        Task<IEnumerable<StatsResponse>> GetStatsAsync();
     }
 }

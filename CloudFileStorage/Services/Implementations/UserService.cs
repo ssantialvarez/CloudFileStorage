@@ -82,19 +82,7 @@ namespace CloudFileStorage.Services.Implementations
         {
             var userId = _tokenProvider.GetUserIdFromToken();
 
-            var userEntity = await _context.Users.FirstOrDefaultAsync(u => u.id.ToString() == userId);
-
-            if (userEntity == null)
-                throw new KeyNotFoundException("User not found in database");
-
-            return new UserResponse
-            (
-                userEntity.id.ToString(),
-                userEntity.username,
-                userEntity.role,
-                userEntity.createdAt,
-                userEntity.updatedAt
-            );
+            return await GetUserByIdAsync(userId);
         }
         public async Task<UserResponse> GetUserByIdAsync(string id)
         {
@@ -122,13 +110,11 @@ namespace CloudFileStorage.Services.Implementations
                 users.updatedAt
             )).ToList();
         }
-
         public Task<UserResponse> DeleteOwnUserAsync()
         {
             var userId = _tokenProvider.GetUserIdFromToken();
             return DeleteUserAsync(userId);
         }
-
         public async Task<UserResponse> UpdateUserAsync(UpdateUserRequest req)
         {
             string userId = _tokenProvider.GetUserIdFromToken();
